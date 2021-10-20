@@ -18,8 +18,7 @@ ARG RUBY_PACKAGES="tzdata"
 RUN apk update \
     && apk upgrade \
     && apk add --update --no-cache $BUILD_PACKAGES $DEV_PACKAGES $RUBY_PACKAGES \
-    && apk add pkgconfig imagemagick6 imagemagick6-dev imagemagick6-libs \
-    && ldconfig /usr/local/lib
+    && apk add pkgconfig imagemagick6 imagemagick6-dev imagemagick6-libs
 
 COPY Gemfile* ./
 COPY Gemfile Gemfile.lock $RAILS_ROOT/

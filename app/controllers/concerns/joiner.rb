@@ -20,17 +20,17 @@ module Joiner
   extend ActiveSupport::Concern
 
   TEMPLATE_AVATARS = {
-    none: "/uploads/noavatar.gif",
-    conan: "https://znews-photo.zadn.vn/w660/Uploaded/oplukaa/2020_08_13/Conan_thumb.jpg",
-    mori: "https://game8.vn/media/201807/images/phai-chang-tham-tu-mori%20(6).jpg",
-    ran: "https://cdn.tgdd.vn//GameApp/1358164//nhan-vat-mori-ran-4-800x525.jpg",
-    kid: "https://i.ytimg.com/vi/LL74DmpWG40/hqdefault.jpg",
-    hattori: "https://cdn.tgdd.vn//GameApp/-1//Hattori-Heiji-chang-tham-tu-lung-danh-mien-Tay-800x800.jpg",
-    songoku: "https://st.quantrimang.com/photos/image/2019/03/13/HinhnenGoku-13.jpg",
-    vegeta: "https://otakukart.com/wp-content/uploads/2021/08/super-dragon-ball-heroes-cosa-successo-vegeta-perche-non-goku-v3-509954.webp-1200x900.jpg",
-    songohan: "https://conteudo.imguol.com.br/c/entretenimento/9c/2017/07/14/gohan-1500057808905_v2_1x1.jpg",
-    chichi: "http://dragonballwiki.net/wp-content/uploads/2015/10/Dragon-Ball-Chi-Chi.jpg",
-    bulma: "http://images5.fanpop.com/image/photos/31000000/Bulma-bulma-briefs-31006210-385-386.jpg"
+    none: "/images/noavatar.gif",
+    template_avatar_1: "https://znews-photo.zadn.vn/w660/Uploaded/oplukaa/2020_08_13/Conan_thumb.jpg",
+    template_avatar_2: "https://game8.vn/media/201807/images/phai-chang-tham-tu-mori%20(6).jpg",
+    template_avatar_3: "https://cdn.tgdd.vn//GameApp/1358164//nhan-vat-mori-ran-4-800x525.jpg",
+    template_avatar_4: "https://i.ytimg.com/vi/LL74DmpWG40/hqdefault.jpg",
+    template_avatar_5: "https://cdn.tgdd.vn//GameApp/-1//Hattori-Heiji-chang-tham-tu-lung-danh-mien-Tay-800x800.jpg",
+    template_avatar_6: "https://st.quantrimang.com/photos/image/2019/03/13/HinhnenGoku-13.jpg",
+    template_avatar_7: "https://otakukart.com/wp-content/uploads/2021/08/super-dragon-ball-heroes-cosa-successo-vegeta-perche-non-goku-v3-509954.webp-1200x900.jpg",
+    template_avatar_8: "https://conteudo.imguol.com.br/c/entretenimento/9c/2017/07/14/gohan-1500057808905_v2_1x1.jpg",
+    template_avatar_9: "http://dragonballwiki.net/wp-content/uploads/2015/10/Dragon-Ball-Chi-Chi.jpg",
+    template_avatar_10: "http://images5.fanpop.com/image/photos/31000000/Bulma-bulma-briefs-31006210-385-386.jpg"
   }
 
   # Displays the join room page to the user
@@ -71,7 +71,7 @@ module Joiner
     response['content-length'].to_i < Rails.configuration.max_avatar_size
   end
 
-  def join_room(opts, upload_file_url = "")
+  def join_room(opts)
     @room_settings = JSON.parse(@room[:room_settings])
 
     moderator_privileges = @room.owned_by?(current_user) || valid_moderator_access_code(session[:moderator_access_code])
@@ -89,11 +89,16 @@ module Joiner
         redirect_to join_path(@room, current_user.name, opts, current_user.uid)
       else
         join_name = params[:join_name] || params[@room.invite_path][:join_name]
-        join_template_avatar = params[:join_avatar] || params[@room.invite_path][:join_avatar]
-        opts[:avatarURL] = if upload_file_url.length > 0
-          upload_file_url
-        else
-          join_template_avatar && join_template_avatar != 'none' ? TEMPLATE_AVATARS[join_template_avatar.to_sym] : nil
+        join_avatar = params[:join_avatar] || params[@room.invite_path][:join_avatar]
+
+        opts[:avatarURL] = if join_avatar.start_with?("template_avatar")
+          TEMPLATE_AVATARS[join_avatar.to_sym]
+        elsif join_avatar.start_with?("custom_avatar")
+          if Rails.env == 'production'
+            "#{request.protocol}#{request.host_with_port}/b/uploads/#{join_avatar.split('custom_avatar_')[1]}"
+          else
+            "#{request.protocol}#{request.host_with_port}/uploads/#{join_avatar.split('custom_avatar_')[1]}"
+          end
         end
 
         redirect_to join_path(@room, join_name, opts, fetch_guest_id)

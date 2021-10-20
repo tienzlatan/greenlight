@@ -125,22 +125,6 @@ class RoomsController < ApplicationController
         # Join name not passed.
         return redirect_to root_path
       end
-
-      # Saving file
-      unless params[:join_upload_avatar].blank? && params[@room.invite_path][:join_upload_avatar].blank?
-        uploaded_file = params[:join_upload_avatar] || params[@room.invite_path][:join_upload_avatar]
-        if uploaded_file.content_type.include? "image/"
-          uploaded_file_custom_name = "#{DateTime.now.strftime('%Q')}-#{uploaded_file.original_filename}"
-
-          origin = Magick::Image.from_blob(uploaded_file.read).first
-          thumb = origin.resize!(100, 100)
-          thumb.composite(origin, Magick::CenterGravity,
-            Magick::CopyCompositeOp).write(Rails.root.join('public', 'uploads', uploaded_file_custom_name))
-          # thumb.write(Rails.root.join('public', 'uploads', uploaded_file_custom_name))
-        else
-          return redirect_to room_path(room_uid: params[:room_uid]), flash: { alert: "Only image bro" }
-        end
-      end
     end
 
     # create or update cookie with join name
@@ -150,17 +134,7 @@ class RoomsController < ApplicationController
 
     logger.info "Support: #{current_user.present? ? current_user.email : @join_name} is joining room #{@room.uid}"
 
-    if uploaded_file
-      upload_file_url = if Rails.env == 'production'
-        "#{request.protocol}#{request.host_with_port}/b/uploads/#{uploaded_file_custom_name}"
-      else
-        "#{request.protocol}#{request.host_with_port}/uploads/#{uploaded_file_custom_name}"
-      end
-
-      join_room(default_meeting_options, upload_file_url)
-    else
-      join_room(default_meeting_options)
-    end
+    join_room(default_meeting_options)
   end
 
   # DELETE /:room_uid

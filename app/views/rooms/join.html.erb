@@ -15,7 +15,7 @@
 
 <style>
   label {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
   }
 
   .image-radio {
@@ -49,11 +49,21 @@
   }
 
   .custom-file-upload {
-      border: 1px solid #ccc;
-      display: inline-block;
-      padding: 6px 12px;
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
       cursor: pointer;
-      width: 100%;
+      border: 1px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s ease-out;
+  }
+
+  .custom-file-upload:hover {
+    background-color: #e6e6e6;
+    font-size: 1.1em;
+    border: 1px solid #e6e6e6;
   }
 
   .clear-file-btn {
@@ -66,22 +76,29 @@
   }
 
   .drop-file-area {
-    border: 1px dotted #ccc;
+    border: 1px solid #ccc;
     display: inline-block;
     margin: 5px auto;
     padding: 12px;
-    cursor: pointer;
-    text-align: center;
     width: 100%;
   }
 
-  .drop-file-area  i {
-    font-size: 2rem;
+  .drop-file-alert {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    font-size: 0.9em;
   }
 
-  .drop-file-area  p {
-    margin-top: 5px;
-    font-size: 0.8rem;
+  .drop-file-alert i {
+    font-size: 2.5rem;
+  }
+
+  .hidden {
+    display: none;
   }
 
 </style>
@@ -119,26 +136,29 @@
         </span>
       </div>
 
-      <p style="margin: 15px 0 10px 0;">Please select your avatar:</p>
-      <% @template_avatar.each do |k, v|%>
-        <label>
-          <%= f.radio_button :join_avatar, k.to_s, :checked => k.to_s == "none" %>
-          <img class="image-radio" src="<%= v %>">
-        </label>
-      <% end %>
-      
-      <p style="margin: 5px 0 10px 0;">Or upload your avatar:</p>
-      <label class="custom-file-upload">
-        <%= f.file_field :join_upload_avatar, accept: 'image/*', id: 'uploadInput', onchange: "uploadFileChange()"%>
-        <i class="fas fa-cloud-upload-alt"></i>  Upload file
-        <p id="uploadedFileName" style="margin-bottom: 0px">No file selected</p>
-        <div class="drop-file-area" id="dropContainer">
-          <i class="fas fa-arrow-alt-circle-down"></i>
-          <p>You can drag and drop here to add them</p>
+      <p style="margin: 15px 0 10px 0;">Select your avatar or drop file here to add them:</p>
+      <div id="dropContainer" class="drop-file-area">
+        <div id="avatarContainer" style="margin-top: 10px;">
+          <% @template_avatar.each do |k, v|%>
+            <label>
+              <%= f.radio_button :join_avatar, k.to_s, :checked => k.to_s == "none" %>
+              <img class="image-radio" src="<%= v %>">
+            </label>
+          <% end %>
         </div>
-      </label>
+        <label id="uploadLabel" class="custom-file-upload">
+          <%= f.file_field :join_upload_avatar, accept: 'image/*', id: 'uploadInput', onchange: "uploadFileChange(this)"%>
+          <i class="fas fa-plus"></i>
+        </label>
+
+        <div id="dropAlert" class="drop-file-alert hidden">
+          <i class="fas fa-cloud-upload-alt"></i>
+          Drop file here to add them
+        </div>
+      </div>
       
-      
+      <p id="flashAlert" style="color: red"></p>
+
       <% if display_joiner_consent %>
         <label class="custom-control custom-checkbox">
           <input id="joiner-consent" type="checkbox" class="custom-control-input" required>
@@ -146,8 +166,6 @@
         </label>
       <% end %>
     <% end %>
-    
-    <button onclick="clearUploadFile()" type="button" class="btn btn-link clear-file-btn">Clear file</button>
 
     <% if moderator_access_code_set && !valid_moderator_access_code %>
       <!-- <hr class="mt-2 float-right w-100 moderator-code-hr"> -->
@@ -159,31 +177,85 @@
   <% end %>
 <% end %>
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-  function clearUploadFile() {
-    document.getElementById("uploadInput").value = "";
-    document.getElementById("uploadedFileName").innerHTML = "No file selected";
+  function uploadFileChange(input) {
+    const formData = new FormData();
+    formData.append("avatar", input.files[0]);
+
+    axios({
+      method: 'POST',
+      url: '/api/v1/uploads',
+      data: formData,
+      headers: {
+      'Content-Type': 'multipart/form-data'
+      }
+    }).then(res => {
+      const uploadedUrl = res.data.avatar_url;
+
+      const splitArr = res.data.avatar_url.split('/');
+      const uploadedFileName = splitArr[splitArr.length - 1];
+
+      const hostUrl = `${window.location.protocol}//${window.location.hostname}`;
+      const port = window.location.port;
+      const hostPath = port ? `${hostUrl}:${port}${uploadedUrl}` : `${hostUrl}${uploadedUrl}`
+
+      const newAvatarLabel =  document.createElement("LABEL"); 
+      const newRadioInput = document.createElement("INPUT");
+      newRadioInput.setAttribute("type", "radio");
+      newRadioInput.setAttribute("value", `custom_avatar_${uploadedFileName}`);
+      newRadioInput.setAttribute("name", `/<%=@room.uid%>[join_avatar]`);
+      const newImage = document.createElement("IMG");
+      newImage.setAttribute("class", "image-radio");
+      newImage.setAttribute("src", hostPath);
+
+      newAvatarLabel.appendChild(newRadioInput);
+      newAvatarLabel.appendChild(newImage);
+      
+      document.getElementById("avatarContainer").appendChild(newAvatarLabel)
+    })
+    .catch(err => {
+      if(err.response.status === 400)
+        document.getElementById("flashAlert").innerHTML = err.response.data.message;
+      else
+        document.getElementById("flashAlert").innerHTML = "Something went wrong. Please try again."
+    });
   }
 
-  function uploadFileChange() {
-    splitUploadPath = document.getElementById("uploadInput").value.split('\\');
-    splitUploadPathLength = splitUploadPath.length;
-    document.getElementById("uploadedFileName").innerHTML = splitUploadPath[splitUploadPathLength - 1];
-  }
-
-  // dragover and dragenter events need to have 'preventDefault' called
-  // in order for the 'drop' event to register. 
-  // See: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Drag_operations#droptargets
   dropContainer.ondragover = dropContainer.ondragenter = function(e) {
+    // dragging on:
+    displayDropAlert();
     e.preventDefault();
   };
 
+  dropContainer.addEventListener("dragleave",function(e) {
+    // dragging out:
+    displayAvatarContainer();
+    e.preventDefault();
+  }, true);
+
   dropContainer.ondrop = function(e) {
+    // dropped:
+    displayAvatarContainer();
+
     const dT = new DataTransfer();
     dT.items.add(e.dataTransfer.files[0]);
     uploadInput.files = dT.files;
 
-    uploadFileChange();
+    uploadFileChange(uploadInput);
     e.preventDefault();
   };
+
+  function displayAvatarContainer() {
+    avatarContainer.classList.remove("hidden");
+    uploadLabel.classList.remove("hidden");
+    dropAlert.classList.add("hidden");
+  }
+
+  function displayDropAlert() {
+    avatarContainer.classList.add("hidden");
+    uploadLabel.classList.add("hidden");
+    dropAlert.classList.remove("hidden");
+  }
+
 </script>

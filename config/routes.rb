@@ -146,5 +146,8 @@ Rails.application.routes.draw do
     end
   end
 
+  # Upload api route
+  post '/api/v1/uploads', to: 'uploads#upload_avatar', defaults: { format: 'json' }
+
   root to: 'main#index'
 end
