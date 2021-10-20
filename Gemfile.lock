@@ -346,6 +346,7 @@ GEM
       rack (>= 1.4)
     retriable (3.1.2)
     rexml (3.2.5)
+    rmagick (2.16.0)
     rspec-core (3.9.3)
       rspec-support (~> 3.9.3)
     rspec-expectations (3.9.4)
@@ -504,6 +505,7 @@ DEPENDENCIES
   redcarpet (~> 3.5.1)
   redis (~> 4.2.5)
   remote_syslog_logger (~> 1.0.4)
+  rmagick
   rspec-rails (~> 3.7)
   rubocop (~> 1.10.0)
   sassc-rails (~> 2.1.2)
@@ -519,3 +521,6 @@ DEPENDENCIES
   uglifier (~> 4.2.0)
   web-console (~> 3.7)
   webmock (~> 3.11)
+
+BUNDLED WITH
+   2.1.4

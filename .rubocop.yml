@@ -1,7 +1,8 @@
 AllCops:
+  SuggestExtensions: false
   Exclude:
-  - 'db/schema.rb'
-  - 'vendor/**/*'
+    - "db/schema.rb"
+    - "vendor/**/*"
   DisabledByDefault: false
   TargetRubyVersion: 2.7
 
@@ -150,35 +151,35 @@ Layout/EmptyLinesAroundAttributeAccessor:
 
 Layout/SpaceAroundMethodCallOperator:
   Enabled: true
-  
+
 Lint/DeprecatedOpenSSLConstant:
   Enabled: true
-  
+
 Lint/RaiseException:
   Enabled: true
-  
+
 Lint/StructNewOverride:
   Enabled: true
-  
+
 Style/ExponentialNotation:
   Enabled: true
-  
+
 Style/HashEachMethods:
   Enabled: true
-  
+
 Style/HashTransformKeys:
   Enabled: true
-   
+
 Style/HashTransformValues:
   Enabled: true
-  
+
 Style/SlicingWithRange:
   Enabled: true
 
 Style/OptionalBooleanParameter:
   Enabled: false
 
-Lint/DuplicateBranch: 
+Lint/DuplicateBranch:
   Enabled: false
 
 Lint/ConstantDefinitionInBlock:

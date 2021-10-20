@@ -15,6 +15,7 @@
 /public/system/**
 /public/assets/**
 /public/b/**
+/public/uploads/**
 
 # Ignore uploaded files
 /storage
@@ -48,3 +49,5 @@ config/terms.md
 coverage*
 
 /atom-sftp-sync.json
+
+.history/**

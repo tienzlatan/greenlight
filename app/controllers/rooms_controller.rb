@@ -69,6 +69,7 @@ class RoomsController < ApplicationController
     @anyone_can_start = room_setting_with_config("anyoneCanStart")
     @room_running = room_running?(@room.bbb_id)
     @shared_room = room_shared_with_user
+    @template_avatar = TEMPLATE_AVATARS
 
     # If its the current user's room
     if current_user && (@room.owned_by?(current_user) || @shared_room)
@@ -124,6 +125,22 @@ class RoomsController < ApplicationController
         # Join name not passed.
         return redirect_to root_path
       end
+
+      # Saving file
+      unless params[:join_upload_avatar].blank? && params[@room.invite_path][:join_upload_avatar].blank?
+        uploaded_file = params[:join_upload_avatar] || params[@room.invite_path][:join_upload_avatar]
+        if uploaded_file.content_type.include? "image/"
+          uploaded_file_custom_name = "#{DateTime.now.strftime('%Q')}-#{uploaded_file.original_filename}"
+
+          origin = Magick::Image.from_blob(uploaded_file.read).first
+          thumb = origin.resize!(100, 100)
+          thumb.composite(origin, Magick::CenterGravity,
+            Magick::CopyCompositeOp).write(Rails.root.join('public', 'uploads', uploaded_file_custom_name))
+          # thumb.write(Rails.root.join('public', 'uploads', uploaded_file_custom_name))
+        else
+          return redirect_to room_path(room_uid: params[:room_uid]), flash: { alert: "Only image bro" }
+        end
+      end
     end
 
     # create or update cookie with join name
@@ -132,7 +149,18 @@ class RoomsController < ApplicationController
     save_recent_rooms
 
     logger.info "Support: #{current_user.present? ? current_user.email : @join_name} is joining room #{@room.uid}"
-    join_room(default_meeting_options)
+
+    if uploaded_file
+      upload_file_url = if Rails.env == 'production'
+        "#{request.protocol}#{request.host_with_port}/b/uploads/#{uploaded_file_custom_name}"
+      else
+        "#{request.protocol}#{request.host_with_port}/uploads/#{uploaded_file_custom_name}"
+      end
+
+      join_room(default_meeting_options, upload_file_url)
+    else
+      join_room(default_meeting_options)
+    end
   end
 
   # DELETE /:room_uid

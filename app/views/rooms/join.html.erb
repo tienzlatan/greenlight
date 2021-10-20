@@ -13,6 +13,79 @@
 # with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 %>
 
+<style>
+  label {
+    margin-bottom: 5px;
+  }
+
+  .image-radio {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+  }
+
+  /* HIDE RADIO */
+  input[type=radio] { 
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  /* IMAGE STYLES */
+  input[type=radio] + .image-radio {
+    cursor: pointer;
+    margin-right: 10px;
+  }
+
+  /* CHECKED STYLES */
+  input[type=radio]:checked + .image-radio {
+    border: 2px solid red;
+  }
+
+  /* UPLOAD STYLES */
+  input[type="file"] {
+    display: none;
+  }
+
+  .custom-file-upload {
+      border: 1px solid #ccc;
+      display: inline-block;
+      padding: 6px 12px;
+      cursor: pointer;
+      width: 100%;
+  }
+
+  .clear-file-btn {
+    padding: 0;
+  }
+
+  .clear-file-btn:focus {
+    outline:none;
+    box-shadow: none;
+  }
+
+  .drop-file-area {
+    border: 1px dotted #ccc;
+    display: inline-block;
+    margin: 5px auto;
+    padding: 12px;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+  }
+
+  .drop-file-area  i {
+    font-size: 2rem;
+  }
+
+  .drop-file-area  p {
+    margin-top: 5px;
+    font-size: 0.8rem;
+  }
+
+</style>
+
 <% content_for(:page_desc) { t("room.invitation_description", name: @room.name) } %>
 
 <% access_code_set = @room.access_code.present? %>
@@ -45,6 +118,27 @@
           </button>
         </span>
       </div>
+
+      <p style="margin: 15px 0 10px 0;">Please select your avatar:</p>
+      <% @template_avatar.each do |k, v|%>
+        <label>
+          <%= f.radio_button :join_avatar, k.to_s, :checked => k.to_s == "none" %>
+          <img class="image-radio" src="<%= v %>">
+        </label>
+      <% end %>
+      
+      <p style="margin: 5px 0 10px 0;">Or upload your avatar:</p>
+      <label class="custom-file-upload">
+        <%= f.file_field :join_upload_avatar, accept: 'image/*', id: 'uploadInput', onchange: "uploadFileChange()"%>
+        <i class="fas fa-cloud-upload-alt"></i>  Upload file
+        <p id="uploadedFileName" style="margin-bottom: 0px">No file selected</p>
+        <div class="drop-file-area" id="dropContainer">
+          <i class="fas fa-arrow-alt-circle-down"></i>
+          <p>You can drag and drop here to add them</p>
+        </div>
+      </label>
+      
+      
       <% if display_joiner_consent %>
         <label class="custom-control custom-checkbox">
           <input id="joiner-consent" type="checkbox" class="custom-control-input" required>
@@ -52,6 +146,9 @@
         </label>
       <% end %>
     <% end %>
+    
+    <button onclick="clearUploadFile()" type="button" class="btn btn-link clear-file-btn">Clear file</button>
+
     <% if moderator_access_code_set && !valid_moderator_access_code %>
       <!-- <hr class="mt-2 float-right w-100 moderator-code-hr"> -->
       <label class="moderator-code-label form-label"><%= t("room.optional_moderator_access_code") %></label>
@@ -61,3 +158,32 @@
     <%= render "rooms/components/enter_access_code_form", access_code_type: 'standard_access' %>
   <% end %>
 <% end %>
+
+<script>
+  function clearUploadFile() {
+    document.getElementById("uploadInput").value = "";
+    document.getElementById("uploadedFileName").innerHTML = "No file selected";
+  }
+
+  function uploadFileChange() {
+    splitUploadPath = document.getElementById("uploadInput").value.split('\\');
+    splitUploadPathLength = splitUploadPath.length;
+    document.getElementById("uploadedFileName").innerHTML = splitUploadPath[splitUploadPathLength - 1];
+  }
+
+  // dragover and dragenter events need to have 'preventDefault' called
+  // in order for the 'drop' event to register. 
+  // See: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Drag_operations#droptargets
+  dropContainer.ondragover = dropContainer.ondragenter = function(e) {
+    e.preventDefault();
+  };
+
+  dropContainer.ondrop = function(e) {
+    const dT = new DataTransfer();
+    dT.items.add(e.dataTransfer.files[0]);
+    uploadInput.files = dT.files;
+
+    uploadFileChange();
+    e.preventDefault();
+  };
+</script>

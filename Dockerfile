@@ -17,7 +17,9 @@ ARG RUBY_PACKAGES="tzdata"
 # Install app dependencies.
 RUN apk update \
     && apk upgrade \
-    && apk add --update --no-cache $BUILD_PACKAGES $DEV_PACKAGES $RUBY_PACKAGES
+    && apk add --update --no-cache $BUILD_PACKAGES $DEV_PACKAGES $RUBY_PACKAGES \
+    && apk add pkgconfig imagemagick6 imagemagick6-dev imagemagick6-libs \
+    && ldconfig /usr/local/lib
 
 COPY Gemfile* ./
 COPY Gemfile Gemfile.lock $RAILS_ROOT/
@@ -28,7 +30,8 @@ RUN bundle config --global frozen 1 \
     && bundle install -j4 --path=vendor/bundle \
     && rm -rf vendor/bundle/ruby/2.7.0/cache/*.gem \
     && find vendor/bundle/ruby/2.7.0/gems/ -name "*.c" -delete \
-    && find vendor/bundle/ruby/2.7.0/gems/ -name "*.o" -delete
+    && find vendor/bundle/ruby/2.7.0/gems/ -name "*.o" -delete \
+    && bundle exec gem pristine rmagick
 
 # Adding project files.
 COPY . .
