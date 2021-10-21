@@ -20,7 +20,7 @@ module Joiner
   extend ActiveSupport::Concern
 
   TEMPLATE_AVATARS = {
-    none: "/images/noavatar.gif",
+    none_or_loggedin_user_avatar: "/images/noavatar.gif",
     template_avatar_1: "/images/template_avatar_1.jpg",
     template_avatar_2: "/images/template_avatar_2.jpg",
     template_avatar_3: "/images/template_avatar_3.jpg",
@@ -97,30 +97,26 @@ module Joiner
       opts[:require_moderator_approval] = room_setting_with_config("requireModeratorApproval")
       opts[:mute_on_start] = room_setting_with_config("muteOnStart")
 
-      if current_user
-        opts[:avatarURL] = current_user.image if current_user.image.present? && valid_avatar?(current_user.image)
+      join_name = params[:join_name] || params[@room.invite_path][:join_name]
+      join_avatar = params[:join_avatar] || params[@room.invite_path][:join_avatar]
 
-        redirect_to join_path(@room, current_user.name, opts, current_user.uid)
-      else
-        join_name = params[:join_name] || params[@room.invite_path][:join_name]
-        join_avatar = params[:join_avatar] || params[@room.invite_path][:join_avatar]
-
-        opts[:avatarURL] = if join_avatar.start_with?("template_avatar")
-          if Rails.env == 'production'
-            "#{request.protocol}#{request.host_with_port}/b#{TEMPLATE_AVATARS[join_avatar.to_sym]}"
-          else
-            "#{request.protocol}#{request.host_with_port}#{TEMPLATE_AVATARS[join_avatar.to_sym]}"
-          end
-        elsif join_avatar.start_with?("custom_avatar")
-          if Rails.env == 'production'
-            "#{request.protocol}#{request.host_with_port}/b/uploads/#{join_avatar.split('custom_avatar_')[1]}"
-          else
-            "#{request.protocol}#{request.host_with_port}/uploads/#{join_avatar.split('custom_avatar_')[1]}"
-          end
+      opts[:avatarURL] = if join_avatar == "none_or_loggedin_user_avatar" && current_user # default selection
+        current_user.image.present? && valid_avatar?(current_user.image) ? current_user.image : nil
+      elsif join_avatar.start_with?("template_avatar") # template avatar selection
+        if Rails.env == 'production'
+          "#{request.protocol}#{request.host_with_port}/b#{TEMPLATE_AVATARS[join_avatar.to_sym]}"
+        else
+          "#{request.protocol}#{request.host_with_port}#{TEMPLATE_AVATARS[join_avatar.to_sym]}"
         end
-
-        redirect_to join_path(@room, join_name, opts, fetch_guest_id)
+      elsif join_avatar.start_with?("custom_avatar") # upload avatar selection
+        if Rails.env == 'production'
+          "#{request.protocol}#{request.host_with_port}/b/uploads/#{join_avatar.split('custom_avatar_')[1]}"
+        else
+          "#{request.protocol}#{request.host_with_port}/uploads/#{join_avatar.split('custom_avatar_')[1]}"
+        end
       end
+
+      redirect_to join_path(@room, join_name, opts, fetch_guest_id)
     else
       search_params = params[@room.invite_path] || params
       @search, @order_column, @order_direction, pub_recs =

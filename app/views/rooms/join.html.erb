@@ -136,30 +136,28 @@
         </span>
       </div>
 
-      <%if !@is_loggedin_user%>
-        <p style="margin: 15px 0 10px 0;">Select your avatar or drop file here to add them:</p>
-        <div id="dropContainer" class="drop-file-area">
-          <div id="avatarContainer" style="margin-top: 10px;">
-            <% @template_avatar.each do |k, v|%>
-              <label>
-                <%= f.radio_button :join_avatar, k.to_s, :checked => k.to_s == "none" %>
-                <img class="image-radio" src="<%= v %>">
-              </label>
-            <% end %>
-          </div>
-          <label id="uploadLabel" class="custom-file-upload">
-            <%= f.file_field :join_upload_avatar, accept: 'image/*', id: 'uploadInput', onchange: "uploadFileChange(this)"%>
-            <i class="fas fa-plus"></i>
-          </label>
-
-          <div id="dropAlert" class="drop-file-alert hidden">
-            <i class="fas fa-cloud-upload-alt"></i>
-            Drop file here to add them
-          </div>
+      <p style="margin: 15px 0 10px 0;">Select your avatar or drop file here to add them:</p>
+      <div id="dropContainer" class="drop-file-area">
+        <div id="avatarContainer" style="margin-top: 10px;">
+          <% @template_avatar.each do |k, v|%>
+            <label>
+              <%= f.radio_button :join_avatar, k.to_s, :checked => k.to_s == "none_or_loggedin_user_avatar" %>
+              <img class="image-radio" src="<%= v %>">
+            </label>
+          <% end %>
         </div>
-        
-        <p id="flashAlert" style="color: red"></p>
-      <%end%>
+        <label id="uploadLabel" class="custom-file-upload">
+          <%= f.file_field :join_upload_avatar, accept: 'image/*', id: 'uploadInput', onchange: "uploadFileChange(this)"%>
+          <i class="fas fa-plus"></i>
+        </label>
+
+        <div id="dropAlert" class="drop-file-alert hidden">
+          <i class="fas fa-cloud-upload-alt"></i>
+          Drop file here to add them
+        </div>
+      </div>
+      
+      <p id="flashAlert" style="color: red"></p>
 
       <% if display_joiner_consent %>
         <label class="custom-control custom-checkbox">

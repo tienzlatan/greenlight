@@ -69,8 +69,12 @@ class RoomsController < ApplicationController
     @anyone_can_start = room_setting_with_config("anyoneCanStart")
     @room_running = room_running?(@room.bbb_id)
     @shared_room = room_shared_with_user
-    @template_avatar = TEMPLATE_AVATARS
-    @is_loggedin_user = current_user.nil? == false
+    @template_avatar = TEMPLATE_AVATARS.clone
+
+    # If currentuser' avatar exists and valid
+    if current_user.image.present? && valid_avatar?(current_user.image)
+      @template_avatar[:none_or_loggedin_user_avatar] = current_user.image
+    end
 
     # If its the current user's room
     if current_user && (@room.owned_by?(current_user) || @shared_room)
