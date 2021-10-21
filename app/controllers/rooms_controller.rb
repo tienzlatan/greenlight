@@ -70,6 +70,7 @@ class RoomsController < ApplicationController
     @room_running = room_running?(@room.bbb_id)
     @shared_room = room_shared_with_user
     @template_avatar = TEMPLATE_AVATARS
+    @is_loggedin_user = current_user.nil? == false
 
     # If its the current user's room
     if current_user && (@room.owned_by?(current_user) || @shared_room)

@@ -21,16 +21,30 @@ module Joiner
 
   TEMPLATE_AVATARS = {
     none: "/images/noavatar.gif",
-    template_avatar_1: "https://znews-photo.zadn.vn/w660/Uploaded/oplukaa/2020_08_13/Conan_thumb.jpg",
-    template_avatar_2: "https://game8.vn/media/201807/images/phai-chang-tham-tu-mori%20(6).jpg",
-    template_avatar_3: "https://cdn.tgdd.vn//GameApp/1358164//nhan-vat-mori-ran-4-800x525.jpg",
-    template_avatar_4: "https://i.ytimg.com/vi/LL74DmpWG40/hqdefault.jpg",
-    template_avatar_5: "https://cdn.tgdd.vn//GameApp/-1//Hattori-Heiji-chang-tham-tu-lung-danh-mien-Tay-800x800.jpg",
-    template_avatar_6: "https://st.quantrimang.com/photos/image/2019/03/13/HinhnenGoku-13.jpg",
-    template_avatar_7: "https://otakukart.com/wp-content/uploads/2021/08/super-dragon-ball-heroes-cosa-successo-vegeta-perche-non-goku-v3-509954.webp-1200x900.jpg",
-    template_avatar_8: "https://conteudo.imguol.com.br/c/entretenimento/9c/2017/07/14/gohan-1500057808905_v2_1x1.jpg",
-    template_avatar_9: "http://dragonballwiki.net/wp-content/uploads/2015/10/Dragon-Ball-Chi-Chi.jpg",
-    template_avatar_10: "http://images5.fanpop.com/image/photos/31000000/Bulma-bulma-briefs-31006210-385-386.jpg"
+    template_avatar_1: "/images/template_avatar_1.jpg",
+    template_avatar_2: "/images/template_avatar_2.jpg",
+    template_avatar_3: "/images/template_avatar_3.jpg",
+    template_avatar_4: "/images/template_avatar_4.jpg",
+    template_avatar_5: "/images/template_avatar_5.jpg",
+    template_avatar_6: "/images/template_avatar_6.jpg",
+    template_avatar_7: "/images/template_avatar_7.jpg",
+    template_avatar_8: "/images/template_avatar_8.jpg",
+    template_avatar_9: "/images/template_avatar_9.jpg",
+    template_avatar_10: "/images/template_avatar_10.jpg",
+    template_avatar_11: "/images/template_avatar_11.jpg",
+    template_avatar_12: "/images/template_avatar_12.jpg",
+    template_avatar_13: "/images/template_avatar_13.jpg",
+    template_avatar_14: "/images/template_avatar_14.jpg",
+    template_avatar_15: "/images/template_avatar_15.jpg",
+    template_avatar_16: "/images/template_avatar_16.jpg",
+    template_avatar_17: "/images/template_avatar_17.jpg",
+    template_avatar_18: "/images/template_avatar_18.jpg",
+    template_avatar_19: "/images/template_avatar_19.jpg",
+    template_avatar_20: "/images/template_avatar_20.jpg",
+    template_avatar_21: "/images/template_avatar_21.jpg",
+    template_avatar_22: "/images/template_avatar_22.jpg",
+    template_avatar_23: "/images/template_avatar_23.jpg",
+    template_avatar_24: "/images/template_avatar_24.jpg",
   }
 
   # Displays the join room page to the user
@@ -92,7 +106,11 @@ module Joiner
         join_avatar = params[:join_avatar] || params[@room.invite_path][:join_avatar]
 
         opts[:avatarURL] = if join_avatar.start_with?("template_avatar")
-          TEMPLATE_AVATARS[join_avatar.to_sym]
+          if Rails.env == 'production'
+            "#{request.protocol}#{request.host_with_port}/b#{TEMPLATE_AVATARS[join_avatar.to_sym]}"
+          else
+            "#{request.protocol}#{request.host_with_port}#{TEMPLATE_AVATARS[join_avatar.to_sym]}"
+          end
         elsif join_avatar.start_with?("custom_avatar")
           if Rails.env == 'production'
             "#{request.protocol}#{request.host_with_port}/b/uploads/#{join_avatar.split('custom_avatar_')[1]}"
