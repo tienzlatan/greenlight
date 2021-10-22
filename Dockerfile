@@ -11,14 +11,13 @@ RUN mkdir -p $RAILS_ROOT
 WORKDIR $RAILS_ROOT
 
 ARG BUILD_PACKAGES="build-base curl-dev git"
-ARG DEV_PACKAGES="postgresql-dev sqlite-libs sqlite-dev yaml-dev zlib-dev nodejs yarn"
+ARG DEV_PACKAGES="postgresql-dev sqlite-libs sqlite-dev yaml-dev zlib-dev nodejs yarn pkgconfig imagemagick6 imagemagick6-dev imagemagick6-libs"
 ARG RUBY_PACKAGES="tzdata"
 
 # Install app dependencies.
 RUN apk update \
     && apk upgrade \
-    && apk add --update --no-cache $BUILD_PACKAGES $DEV_PACKAGES $RUBY_PACKAGES \
-    && apk add pkgconfig imagemagick6 imagemagick6-dev imagemagick6-libs
+    && apk add --update --no-cache $BUILD_PACKAGES $DEV_PACKAGES $RUBY_PACKAGES
 
 COPY Gemfile* ./
 COPY Gemfile Gemfile.lock $RAILS_ROOT/
@@ -29,8 +28,7 @@ RUN bundle config --global frozen 1 \
     && bundle install -j4 --path=vendor/bundle \
     && rm -rf vendor/bundle/ruby/2.7.0/cache/*.gem \
     && find vendor/bundle/ruby/2.7.0/gems/ -name "*.c" -delete \
-    && find vendor/bundle/ruby/2.7.0/gems/ -name "*.o" -delete \
-    && bundle exec gem pristine rmagick
+    && find vendor/bundle/ruby/2.7.0/gems/ -name "*.o" -delete
 
 # Adding project files.
 COPY . .

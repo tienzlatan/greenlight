@@ -18,7 +18,6 @@ services:
     volumes:
       - ./log:/usr/src/app/log
       - ./storage:/usr/src/app/storage
-      - ./public/uploads:/usr/src/app/public/uploads
     # When using sqlite3 as the database
     #      - ./db/production:/usr/src/app/db/production
     # When using postgresql as the database

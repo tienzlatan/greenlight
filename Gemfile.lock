@@ -505,7 +505,7 @@ DEPENDENCIES
   redcarpet (~> 3.5.1)
   redis (~> 4.2.5)
   remote_syslog_logger (~> 1.0.4)
-  rmagick
+  rmagick (~> 2.15, >= 2.15.4)
   rspec-rails (~> 3.7)
   rubocop (~> 1.10.0)
   sassc-rails (~> 2.1.2)

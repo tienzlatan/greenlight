@@ -72,7 +72,7 @@ class RoomsController < ApplicationController
     @template_avatar = TEMPLATE_AVATARS.clone
 
     # If currentuser' avatar exists and valid
-    if current_user.image.present? && valid_avatar?(current_user.image)
+    if current_user && current_user.image.present? && valid_avatar?(current_user.image)
       @template_avatar[:none_or_loggedin_user_avatar] = current_user.image
     end
 
