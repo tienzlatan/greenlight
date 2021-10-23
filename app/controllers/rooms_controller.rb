@@ -71,7 +71,13 @@ class RoomsController < ApplicationController
     @shared_room = room_shared_with_user
     @template_avatar = TEMPLATE_AVATARS.clone
 
-    # If currentuser' avatar exists and valid
+    if Rails.env == "production"
+      @template_avatar.each do |k, v|
+        @template_avatar[k] = "/b#{v}"
+      end
+    end
+
+    # If current user' avatar exists and valid
     if current_user && current_user.image.present? && valid_avatar?(current_user.image)
       @template_avatar[:none_or_loggedin_user_avatar] = current_user.image
     end

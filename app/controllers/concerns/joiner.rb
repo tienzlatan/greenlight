@@ -97,8 +97,12 @@ module Joiner
       opts[:require_moderator_approval] = room_setting_with_config("requireModeratorApproval")
       opts[:mute_on_start] = room_setting_with_config("muteOnStart")
 
+      return redirect_to join_path(@room, current_user.name, opts, current_user.uid) if current_user
+
       join_name = params[:join_name] || params[@room.invite_path][:join_name]
       join_avatar = params[:join_avatar] || params[@room.invite_path][:join_avatar]
+
+      logger.info "join_avatar: #{join_avatar}"
 
       opts[:avatarURL] = if join_avatar == "none_or_loggedin_user_avatar" && current_user # default selection
         current_user.image.present? && valid_avatar?(current_user.image) ? current_user.image : nil
@@ -115,6 +119,8 @@ module Joiner
           "#{request.protocol}#{request.host_with_port}/uploads/#{join_avatar.split('custom_avatar_')[1]}"
         end
       end
+
+      logger.info "opts[:avatarURL]: #{opts[:avatarURL]}"
 
       redirect_to join_path(@room, join_name, opts, fetch_guest_id)
     else

@@ -142,7 +142,7 @@
           <% @template_avatar.each do |k, v|%>
             <label>
               <%= f.radio_button :join_avatar, k.to_s, :checked => k.to_s == "none_or_loggedin_user_avatar" %>
-              <img class="image-radio" src="<%= v %>">
+              <img class="image-radio" src= "<%= v %>">
             </label>
           <% end %>
         </div>
@@ -179,26 +179,27 @@
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
+  const hostPath = window.location.pathname;
+  const hostPort = window.location.port || null;
+  const hostBaseUrl = `${window.location.protocol}//${window.location.hostname}${hostPort ? `:${hostPort}` : ""}${hostPath.startsWith("/b") ? "/b" : ""}`;
+
   function uploadFileChange(input) {
     const formData = new FormData();
     formData.append("avatar", input.files[0]);
 
     axios({
       method: 'POST',
-      url: '/api/v1/uploads',
+      url: `${hostPath.startsWith("/b") ? "/b" : ""}/api/v1/uploads`,
       data: formData,
       headers: {
       'Content-Type': 'multipart/form-data'
       }
     }).then(res => {
       const uploadedUrl = res.data.avatar_url;
+      const avatarPath = `${hostBaseUrl}${uploadedUrl}`
 
       const splitArr = res.data.avatar_url.split('/');
       const uploadedFileName = splitArr[splitArr.length - 1];
-
-      const hostUrl = `${window.location.protocol}//${window.location.hostname}`;
-      const port = window.location.port;
-      const hostPath = port ? `${hostUrl}:${port}${uploadedUrl}` : `${hostUrl}${uploadedUrl}`
 
       const newAvatarLabel =  document.createElement("LABEL"); 
       const newRadioInput = document.createElement("INPUT");
@@ -207,7 +208,7 @@
       newRadioInput.setAttribute("name", `/<%=@room.uid%>[join_avatar]`);
       const newImage = document.createElement("IMG");
       newImage.setAttribute("class", "image-radio");
-      newImage.setAttribute("src", hostPath);
+      newImage.setAttribute("src", avatarPath);
 
       newAvatarLabel.appendChild(newRadioInput);
       newAvatarLabel.appendChild(newImage);
